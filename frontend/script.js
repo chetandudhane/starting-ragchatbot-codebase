@@ -71,7 +71,11 @@ async function sendMessage() {
             })
         });
 
-        if (!response.ok) throw new Error('Query failed');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+            const errorMessage = errorData.detail || 'Query failed';
+            throw new Error(errorMessage);
+        }
 
         const data = await response.json();
         
@@ -122,10 +126,35 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     let html = `<div class="message-content">${displayContent}</div>`;
     
     if (sources && sources.length > 0) {
+        const sourceLinks = sources.map(source => {
+            if (typeof source === 'string') {
+                // Handle legacy string format
+                return `<span class="source-text">${source}</span>`;
+            } else {
+                // Handle new object format with links
+                const displayText = source.lesson_number 
+                    ? `${source.title} - Lesson ${source.lesson_number}`
+                    : source.title;
+                
+                // Use lesson link if available, otherwise use course link
+                const link = source.lesson_link || source.course_link;
+                
+                if (link) {
+                    return `<a href="${link}" target="_blank" class="source-link">${displayText}</a>`;
+                } else {
+                    return `<span class="source-text">${displayText}</span>`;
+                }
+            }
+        });
+        
         html += `
             <details class="sources-collapsible">
                 <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <div class="sources-content">
+                    <div class="sources-list">
+                        ${sourceLinks.map(link => `<div class="source-item">${link}</div>`).join('')}
+                    </div>
+                </div>
             </details>
         `;
     }

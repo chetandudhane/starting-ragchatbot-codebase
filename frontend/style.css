@@ -241,8 +241,60 @@ header h1 {
 }
 
 .sources-content {
-    padding: 0 0.5rem 0.25rem 1.5rem;
+    padding: 0.5rem 0.5rem 0.25rem 1.5rem;
     color: var(--text-secondary);
+}
+
+/* Sources list container */
+.sources-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Individual source item */
+.source-item {
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.source-item:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+    transform: translateX(2px);
+}
+
+/* Source link styles */
+.source-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    display: block;
+    transition: all 0.2s ease;
+}
+
+.source-link:hover {
+    color: var(--primary-hover);
+    text-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+}
+
+.source-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--focus-ring);
+    border-radius: 4px;
+}
+
+.source-text {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    display: block;
 }
 
 /* Markdown formatting styles */
