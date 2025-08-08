@@ -35,6 +35,13 @@ app.add_middleware(
 rag_system = RAGSystem(config)
 
 # Pydantic models for request/response
+class SourceInfo(BaseModel):
+    """Source information for query responses"""
+    title: str
+    lesson_number: Optional[int] = None
+    course_link: Optional[str] = None
+    lesson_link: Optional[str] = None
+
 class QueryRequest(BaseModel):
     """Request model for course queries"""
     query: str
@@ -43,7 +50,7 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     """Response model for course queries"""
     answer: str
-    sources: List[str]
+    sources: List[SourceInfo]
     session_id: str
 
 class CourseStats(BaseModel):
@@ -65,9 +72,42 @@ async def query_documents(request: QueryRequest):
         # Process query using RAG system
         answer, sources = rag_system.query(request.query, session_id)
         
+        # Convert source dictionaries to SourceInfo objects for API response
+        formatted_sources = []
+        if sources and isinstance(sources, list):
+            for source in sources:
+                try:
+                    if isinstance(source, dict):
+                        source_info = SourceInfo(
+                            title=source.get('title', 'Unknown Course'),
+                            lesson_number=source.get('lesson_number'),
+                            course_link=source.get('course_link'),
+                            lesson_link=source.get('lesson_link')
+                        )
+                        formatted_sources.append(source_info)
+                    else:
+                        # Handle legacy string format
+                        source_info = SourceInfo(
+                            title=str(source),
+                            lesson_number=None,
+                            course_link=None,
+                            lesson_link=None
+                        )
+                        formatted_sources.append(source_info)
+                except Exception as e:
+                    print(f"Error formatting source: {source}, error: {e}")
+                    # Create a fallback source info
+                    source_info = SourceInfo(
+                        title="Source formatting error",
+                        lesson_number=None,
+                        course_link=None,
+                        lesson_link=None
+                    )
+                    formatted_sources.append(source_info)
+        
         return QueryResponse(
             answer=answer,
-            sources=sources,
+            sources=formatted_sources,
             session_id=session_id
         )
     except Exception as e:
